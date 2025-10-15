@@ -3,38 +3,36 @@
 import nltk
 from nltk.corpus import wordnet as wn
 from nltk.tokenize import word_tokenize
+
 nltk.download('wordnet')
 nltk.download('punkt')
 nltk.download('omw-1.4')
-nltk.download('stopwords')
-from nltk.corpus import stopwords
-stop_words = set(stopwords.words('english'))
 
-def smart_lesk(word, sentence):
-    context = [w.lower() for w in word_tokenize(sentence) if w.isalpha() and w.lower() not in stop_words]
+def simple_lesk(word, sentence):
+    context = set(w.lower() for w in word_tokenize(sentence))
     best_sense = None
     max_overlap = 0
+
     for sense in wn.synsets(word):
         signature = set(word_tokenize(sense.definition()))
         for ex in sense.examples():
             signature |= set(word_tokenize(ex))
-        for related in sense.hypernyms() + sense.hyponyms():
-            signature |= set(word_tokenize(related.definition()))  
-        signature = {w.lower() for w in signature if w.isalpha() and w.lower() not in stop_words}
-        overlap = len(set(context) & signature)
+        overlap = len(context & set(w.lower() for w in signature))
         if overlap > max_overlap:
             max_overlap = overlap
             best_sense = sense
-    return best_sense
-s1 = "He deposited the cash at the bank near the river after fishing."
-r1 = smart_lesk("bank", s1)
-print("Sense:", r1.name())
-print("Definition:", r1.definition())
 
-s2 = "The bat flew silently across the night sky in search of insects."
-r2 = smart_lesk("bat", s2)
-print("\nSense:", r2.name())
-print("Definition:", r2.definition())
+    return best_sense
+
+sentence = "He deposited the cash at the bank near the river after fishing."
+result = simple_lesk("bank", sentence)
+print("Sense:", result.name())
+print("Definition:", result.definition())
+
+sentence = " The bat flew silently across the night sky in search of insects."
+result = simple_lesk("bat", sentence)
+print("Sense:", result.name())
+print("Definition:", result.definition())
 ----------------------------
 2.tf df
 =                  
