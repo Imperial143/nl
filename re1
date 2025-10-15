@@ -3,12 +3,10 @@
 import nltk
 from nltk.corpus import wordnet as wn
 from nltk.tokenize import word_tokenize
-
 nltk.download('wordnet')
 nltk.download('punkt')
 nltk.download('omw-1.4')
 nltk.download('stopwords')
-
 from nltk.corpus import stopwords
 stop_words = set(stopwords.words('english'))
 
@@ -16,27 +14,18 @@ def smart_lesk(word, sentence):
     context = [w.lower() for w in word_tokenize(sentence) if w.isalpha() and w.lower() not in stop_words]
     best_sense = None
     max_overlap = 0
-
     for sense in wn.synsets(word):
-        # Collect signature words (definition + examples)
         signature = set(word_tokenize(sense.definition()))
         for ex in sense.examples():
             signature |= set(word_tokenize(ex))
-        
-        # Add synonyms + hypernyms for more context
         for related in sense.hypernyms() + sense.hyponyms():
-            signature |= set(word_tokenize(related.definition()))
-        
+            signature |= set(word_tokenize(related.definition()))  
         signature = {w.lower() for w in signature if w.isalpha() and w.lower() not in stop_words}
         overlap = len(set(context) & signature)
-
         if overlap > max_overlap:
             max_overlap = overlap
             best_sense = sense
-
     return best_sense
-
-# Example usage
 s1 = "He deposited the cash at the bank near the river after fishing."
 r1 = smart_lesk("bank", s1)
 print("Sense:", r1.name())
@@ -68,74 +57,54 @@ for word, val in zip(features,tfidf.idf_):
   
  import spacy
 from spacy.matcher import Matcher
-
-# Load spaCy English model
 nlp = spacy.load("en_core_web_sm")
-
-# === Input: Unstructured Text ===
 text = """
 Apple Inc. is looking at buying a UK-based AI startup for $1 billion.
 Tim Cook, the CEO of Apple, said the acquisition will help enhance Siri’s intelligence.
 The company has previously acquired startups in Canada and Germany.
 """
-
-# Process the text
 doc = nlp(text)
-
-# === 1. Named Entity Recognition (NER) ===
 print("\nNamed Entities:")
 for ent in doc.ents:
     print(f"{ent.text} → {ent.label_} ({spacy.explain(ent.label_)})")
-
-# === 2. Noun Phrase Extraction ===
 print("\n Noun Phrases:")
 for chunk in doc.noun_chunks:
     print(chunk.text)
 -------------------------------------
 4.Question Answering System- Design a questioning answer system using Python.
-                     from transformers import pipeline
+from transformers import pipeline
 qa_pipeline = pipeline("question-answering", model="bert-large-uncased-whole-word-masking-finetuned-squad")
-# === Provide context ===
 context = """
 Apple Inc. is a multinational technology company headquartered in Cupertino, California.
 It designs, develops, and sells consumer electronics, computer software, and online services.
 Its best-known products include the iPhone, iPad, and Mac computers.
 Apple was founded by Steve Jobs, Steve Wozniak, and Ronald Wayne in 1976.
 """
-
-# === Ask questions ===
 questions = [
     "Where is Apple Inc. headquartered?",
     "Who founded Apple?",
     "What are Apple’s popular products?"
 ]
-
-# === Get answers ===
 print("🔍 Answers:")
 for question in questions:
     result = qa_pipeline(question=question, context=context)
     print(f"Q: {question}\nA: {result['answer']} (Score: {result['score']:.2f})\n")
 -------------------------------------------
 5.Design and Implementation of an Information Retrieval System with Indexing, Stop-word Removal, and Stemming in Python.
-                     import spacy
+import spacy
 from nltk.stem import PorterStemmer
 from collections import defaultdict
-
 nlp, stem = spacy.load("en_core_web_sm"), PorterStemmer()
-
 docs = {
     "doc1": "Information Retrieval is a technique to search relevant documents.",
     "doc2": "Retrieval systems use indexing to improve search efficiency.",
     "doc3": "Search engines use natural language processing to understand queries.",
 }
-
 def preprocess(text):
     return [stem.stem(t.text) for t in nlp(text.lower()) if t.is_alpha and not t.is_stop]
-
 inv = defaultdict(set)
 for d, c in docs.items():
     for t in preprocess(c): inv[t].add(d)
-
 while True:
     q = input("\nQuery ('exit' to quit): ").lower()
     if q == "exit": break
@@ -144,10 +113,7 @@ while True:
     print("\n".join(f"{d}: {docs[d]}" for d in res) if res else "No documents found.")
 ------------------------------------
 6.Positional Encoding-Implement a python code to do positional encoding in GPT
-
-                    import torch, math
-
-# --- your positional encoding from above ---
+import torch, math
 def positional_encoding(seq_len, d_model):
     pos_enc = torch.zeros(seq_len, d_model)
     for pos in range(seq_len):
@@ -156,90 +122,59 @@ def positional_encoding(seq_len, d_model):
             if i + 1 < d_model:
                 pos_enc[pos, i+1] = math.cos(pos / (10000 ** (i / d_model)))
     return pos_enc
-
-# Example token embeddings (pretend these came from an embedding layer)
 EMB = {
     "The":    torch.tensor([0.2, 0.5, 0.1, 0.7]),
     "cat":    torch.tensor([0.3, 0.6, 0.8, 0.1]),
     "sleeps": torch.tensor([0.4, 0.9, 0.2, 0.5]),
 }
-
-
-
 def encode_sentence(tokens):
     X = torch.stack([EMB[t] for t in tokens])
     P = positional_encoding(seq_len=len(tokens), d_model=X.size(1))
     E = X + P
     return X, P, E
-
-# ---- Sentence A: "The cat sleeps"
 tokens_A = ["The", "cat", "sleeps"]
 X_A, P_A, E_A = encode_sentence(tokens_A)
 # ---- Sentence B: "sleeps cat The" (same words, different order)
 tokens_B = ["sleeps", "The", "cat"]
 X_B, P_B, E_B = encode_sentence(tokens_B)
-
-# ---- Inspect
 print("Tokens A:", tokens_A)
 print("query tokens in order:\n", E_A)
-
-
 print("\nTokens B:", tokens_B)
 print("order changed:\n", E_B)   
 -----------------------------------
 7.Coreference Resolution with Pretrained Transformers 
-                     import re
+import re
 from fastcoref import FCoref
-
 text = "Alice met Bob after she left the office. He told her the report was ready, and Alice thanked him."
 res = FCoref().predict(texts=[text])[0]
-
 print("Clusters:")
 for c in res.get_clusters(as_strings=True):
     print(c)
-
 def pick_rep(ms):
     p = [m for m in ms if m[0].isupper()]
     return max(p or ms, key=len)
-
 resolved = text
 for c in res.get_clusters(as_strings=True):
     rep = pick_rep(c)
     for m in sorted(set(c), key=len, reverse=True):
         if m != rep:
             resolved = re.sub(rf"\b{re.escape(m)}\b", rep, resolved, flags=re.I)
-
 print("\nResolved text:\n", resolved)
 -------------------------------------------
 8.Develop a simple chatbot using Chatgpt-2/GPT-3/Gemini.
          =
 from transformers import AutoModelForCausalLM, AutoTokenizer
-
-# Load model and tokenizer
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
-
 print("🤖 Chatbot ready! Type 'exit' to quit.\n")
-
 chat_history_ids = None
-
 while True:
     user_input = input("You: ")
     if user_input.lower() == "exit":
         break
-
-    # Encode user input and add chat history
     input_ids = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors='pt')
-
-    # Append new input to chat history
     bot_input = input_ids if chat_history_ids is None else torch.cat([chat_history_ids, input_ids], dim=-1)
-
-    # Generate reply
     output = model.generate(bot_input, max_length=1000, pad_token_id=tokenizer.eos_token_id)
-
-    # Decode and print reply
     reply = tokenizer.decode(output[:, bot_input.shape[-1]:][0], skip_special_tokens=True)
     print(f"Bot: {reply}\n")
-
-    # Update chat history
     chat_history_ids = output
