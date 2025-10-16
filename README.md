@@ -13,10 +13,8 @@ int main(int c, char *v[]) {
     char b[4096];
     struct sockaddr_in a = {AF_INET, htons(atoi(v[3]))};
     a.sin_addr.s_addr = inet_addr(v[1]);
-
     connect(s, (void *)&a, sizeof(a));
     write(s, v[2], strlen(v[2]) + 1);
-
     while ((n = read(s, b, 4096)) > 0)
         write(1, b, n);
 }
@@ -38,18 +36,14 @@ int main(int c, char *v[]) {
     int s = socket(AF_INET, SOCK_STREAM, 0), n, f;
     char b[4096];
     struct sockaddr_in a = {AF_INET, htons(atoi(v[1])), INADDR_ANY};
-
     bind(s, (void *)&a, sizeof(a));
     listen(s, 1);
-
     int ns = accept(s, 0, 0);
     read(ns, b, 4096);
-
     f = open(b, O_RDONLY);
     while ((n = read(f, b, 4096)) > 0)
         write(ns, b, n);
-
-    puts("Transfer Completed");
+        puts("Transfer Completed");
 }
 
 gcc server.c -o server
