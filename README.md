@@ -93,6 +93,7 @@ ip helper-adress 192.168.2.2
 no shutdown
 do write memory
 
+Topi
 <Directory "/var/www/html">
 AuthType Basic
 AuthName "RESTRICTED"
